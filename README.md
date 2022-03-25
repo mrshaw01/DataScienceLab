@@ -1,2 +1,2 @@
-# DsLab
-Data Science Laboratory
+# Data Science Laboratory
+Data Science Laboratory resources
