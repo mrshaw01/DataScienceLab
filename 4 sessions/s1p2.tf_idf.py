@@ -11,12 +11,8 @@ def gather_20newsgroups_data():
 	train_dir, test_dir = (dirs[0], dirs[1]) if 'train' in dirs[0] else (dirs[1], dirs[0])
 	list_newgroups = [newsgroup for newsgroup in listdir(train_dir)]
 	list_newgroups.sort()
-	print(train_dir)
-	print(test_dir)
-	print(list_newgroups)
-	exit()
 
-	with open(os.getcwd()+'/20news-bydate/stop-words.txt') as f:
+	with open(os.getcwd()+'/stop-words.txt') as f:
 		stop_words = f.read().splitlines()
 
 	from nltk.stem.porter import PorterStemmer
@@ -31,7 +27,7 @@ def gather_20newsgroups_data():
 			files = [(filename, dir_path + filename) for filename in listdir(dir_path) if isfile(dir_path + filename)]
 			files.sort()
 			for filename, filepath in files:
-				with open(filepath,encoding='latin1') as f:
+				with open(filepath, encoding='latin1') as f:
 					text = str(f.read()).lower()
 					words = [stemmer.stem(word) for word in re.split('\W+', text) if word not in stop_words]
 					content = ' '.join(words)
@@ -58,7 +54,7 @@ def gather_20newsgroups_data():
 
 def generate_vocabulary(data_path):
 	def compute_idf(df, corpus_size):
-		assert df>0
+		assert df > 0
 		return np.log10(corpus_size*1./df)
 	
 	with open(data_path) as f:
@@ -75,13 +71,13 @@ def generate_vocabulary(data_path):
 					if document_freq > 10 and not word.isdigit()]
 	words_idfs.sort(key = lambda word: -word[1])
 	print('Vocabulary size: {}'.format(len(words_idfs)))
-	with open(os.getcwd()+"/20news-bydate/words_idfs.txt", "w") as f:
+	with open(os.getcwd()+"/20news-bydate/20news-full-words-idfs.txt", "w") as f:
 		f.write("\n".join([word + '<fff>' + str(idf) for word, idf in words_idfs]))
 
 def get_tf_idf(data_path):
-	with open(os.getcwd()+"/20news-bydate/words_idfs.txt") as f:
+	with open(os.getcwd()+"/20news-bydate/20news-full-words-idfs.txt") as f:
 		words_idfs = [(line.split('<fff>')[0], float(line.split('<fff>')[1])) for line in f.read().splitlines()]
-		word_IDs = dict([(word, index) for index, (word, idf) in enumerate(words_idfs)])
+		word_ids = dict([(word, index) for index, (word, idf) in enumerate(words_idfs)])
 		idfs = dict(words_idfs)
 	with open(data_path) as f:
 		documents = [(int(line.split('<fff>')[0]),
@@ -103,7 +99,7 @@ def get_tf_idf(data_path):
 		for word in word_set:
 			term_freq = word_count[word]
 			tf_idf_value = term_freq * 1./ max_term_freq * idfs[word]
-			words_tfidfs.append((word_IDs[word], tf_idf_value))
+			words_tfidfs.append((word_ids[word], tf_idf_value))
 			sum_squares += tf_idf_value**2
 		words_tfidfs = sorted(words_tfidfs)
 		words_tfidfs_normalized = [str(index) + ':' + str(tf_idf_value/np.sqrt(sum_squares)) for index, tf_idf_value in words_tfidfs]
@@ -114,5 +110,5 @@ def get_tf_idf(data_path):
 		f.write("\n".join([str(label) + '<fff>' + str(doc_id) + '<fff>' + sparse_rep for label, doc_id, sparse_rep in data_tf_idf]))
 		
 gather_20newsgroups_data()
-# generate_vocabulary(os.getcwd()+"/20news-bydate/20news-full-processed.txt")
-# get_tf_idf(os.getcwd()+"/20news-bydate/20news-full-processed.txt")
+generate_vocabulary(os.getcwd()+"/20news-bydate/20news-full-processed.txt")
+get_tf_idf(os.getcwd()+"/20news-bydate/20news-full-processed.txt")
